@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Check-In Bot: Map</title>
+
+    <!-- Скрипт Telegram WebApp -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <!-- Подключаем Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+    <!-- Подключаем Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Библиотека для отображения 3D-моделей .glb/.gltf -->
+    <script type="module" src="https://unpkg.com/@google/model-viewer@3.4.0/dist/model-viewer.min.js"></script>
+
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        #map {
+            width: 100vw;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+<!-- Roblox-стиль поп-ап окна, который изначально скрыт (display: none) -->
+<div id="meme-popup" style="
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 290px; height: 360px; background: rgba(19, 19, 22, 0.96);
+    border: 3px solid #ff3d00; border-radius: 8px; z-index: 2000;
+    display: none; text-align: center; color: white; font-family: 'Arial', sans-serif;
+    box-shadow: 0 0 30px rgba(255, 61, 0, 0.6);
+">
+    <h3 style="margin: 12px 0; letter-spacing: 1px;">🚨 ОБНАРУЖЕН SIX-SEVEN! 6️⃣7️⃣</h3>
+
+    <!-- Тег от Google, который теперь берет модель локально с вашего Mac -->
+    <model-viewer
+            id="meme-viewer"
+            src="./models/Astronaut.glb"
+            alt="Roblox Six-Seven Meme"
+            auto-rotate
+            camera-controls
+            style="width: 100%; height: 220px; background: #2a2a30;">
+    </model-viewer>
+
+
+    <button id="capture-btn" style="
+        background: #ff3d00; color: white; border: none; padding: 10px 24px;
+        font-weight: bold; border-radius: 4px; cursor: pointer; margin-top: 14px;
+        font-size: 14px; letter-spacing: 0.5px; box-shadow: 0 4px 10px rgba(255,61,0,0.4);
+    ">ТАПНУТЬ И СОБРАТЬ! 🤌
+    </button>
+</div>
+
+
+<div id="map"></div>
+
+<script>
+    console.log("Логика JavaScript запущена!");
+
+    const API_BASE_URL = "http://127.0.0.1:8000";
+    const VISIBILITY_RADIUS = 150; // Радиус раскрытия тумана войны в метрах
+    const GAME_ID = 1;
+    let visitedPoints = new Set(); // Хранит ID собранных мемов
+
+    // Заглушка Telegram API
+    const tg = window.Telegram?.WebApp || {
+        expand: () => console.log("Фейковый expand: открыто в браузере Mac"),
+        initDataUnsafe: {
+            user: {
+                id: 99999,
+                username: "macbook_tester",
+                first_name: "Yury_Dev"
+            }
+        }
+    };
+    tg.expand();
+
+    // Инициализируем карту вокруг координат Минска
+    const map = L.map('map').setView([53.95, 27.67], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 19}).addTo(map);
+
+    // Переменные для игры
+    let userMarker = null;       // Синий кружок игрока
+    let userLat = 53.955;        // Стартовая позиция игрока (чуть в стороне от мемов)
+    let userLon = 27.665;
+    let targetPoints = [];       // Массив всех скрытых точек квеста
+    let discoveredPoints = new Set(); // ID точек, на которых туман войны уже рассеялся
+
+    // 1. Формула Хаверсина для точного расчета метров на круглой Земле
+    function getDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371000; // Радиус Земли в метрах
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c; // Расстояние в метрах
+    }
+
+    // 3. ФУНКЦИЯ ОТПРАВКИ ПРОГРЕССА НА Python FastAPI БЭКЕНД
+    async function sendProgressToServer() {
+        try {
+            console.log("Отправляем прогресс игрока на бэкенд...");
+
+            const userId = tg.initDataUnsafe?.user?.id || 99999;
+            const username = tg.initDataUnsafe?.user?.username || "macbook_tester";
+            const firstName = tg.initDataUnsafe?.user?.first_name || "Yury_Dev";
+
+            const response = await fetch(`${API_BASE_URL}/api/progress`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                // Передаем данные игрока (сейчас у нас данные из заглушки Yury_Dev)
+                body: JSON.stringify({
+                    tg_id: userId,
+                    username: username,
+                    first_name: firstName,
+                    game_id: GAME_ID,
+                    points_found: visitedPoints.size // Сколько мемов мы уже собрали
+                })
+            });
+
+            const data = await response.json();
+            console.log("Ответ от бэкенда по прогрессу:", data);
+
+            // Обрабатываем геймплейные статусы соревнования от сервера
+            if (data.status === "victory") {
+                alert("🏆 ЧЕМПИОН! Вы собрали все мемы ПЕРВЫМ! Вы победили в соревновании! 🤌6️⃣7");
+            } else if (data.status === "finished_late") {
+                alert(`🏁 Вы собрали все точки, но кубок уже забрали! Победитель: ${data.winner}`);
+            } else {
+                alert(`🏆 Мем собран! Ваш текущий счет: ${visitedPoints.size} из ${targetPoints.length}`);
+            }
+
+        } catch (error) {
+            console.error("Ошибка при отправке прогресса на сервер:", error);
+        }
+    }
+
+
+    // 2. Функция сканирования местности (проверяет туман войны вокруг игрока)
+    function checkFogOfWar() {
+        targetPoints.forEach((point) => {
+            const distance = getDistance(userLat, userLon, point.lat, point.lon);
+
+            // 1. Раскрытие тумана войны (150 метров)
+            if (distance <= VISIBILITY_RADIUS && !discoveredPoints.has(point.id)) {
+                discoveredPoints.add(point.id);
+                point.markerInstance = L.marker([point.lat, point.lon])
+                    .addTo(map)
+                    .bindPopup(`<b>👀 Скрытый Мем открыт!</b>`)
+                    .openPopup();
+                console.log(`💥 Туман рассеялся для точки #${point.id + 1}`);
+            }
+
+            // 2. ВХОД В ЗОНУ ВЗЯТИЯ ТОЧКИ (15 метров)
+            if (distance <= 15 && !visitedPoints.has(point.id)) {
+                // Чтобы окно не открывалось повторно, пока игрок его не закроет
+                visitedPoints.add(point.id);
+
+                console.log(`🎯 Игрок подошел вплотную к мему #${point.id + 1}! Дистанция: ${Math.round(distance)}м.`);
+
+                // Показываем наше скрытое 3D окно
+                const popup = document.getElementById('meme-popup');
+                popup.style.display = 'block';
+
+                // Вешаем обработчик события на клик по кнопке «Тапнуть и собрать»
+                // Находим этот кусок внутри if (distance <= 15 ...)
+                document.getElementById('capture-btn').onclick = function() {
+                    popup.style.display = 'none'; // Прячем 3D окно
+
+                    if (point.markerInstance) {
+                        point.markerInstance.setPopupContent(`<b>✅ Мем успешно собран!</b>`).openPopup();
+                    }
+
+                    sendProgressToServer();
+                };
+            }
+        });
+    }
+
+    // 3. Функция загрузки точек (модифицированная)
+    async function loadGamePoints(gameId) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/games/${gameId}/points`);
+            const points = await response.json();
+
+            // Сохраняем точки в наш массив, но на карту изначально НЕ ДОБАВЛЯЕМ!
+            targetPoints = points.map((p, idx) => ({
+                lat: p.lat,
+                lon: p.lon,
+                id: idx,
+                markerInstance: null
+            }));
+
+            console.log(`Загружено ${targetPoints.length} скрытых точек. Они покрыты туманом войны!`);
+
+            // Рисуем игрока на стартовой позиции
+            userMarker = L.circleMarker([userLat, userLon], {
+                color: '#007aff',
+                fillColor: '#007aff',
+                fillOpacity: 0.8,
+                radius: 10
+            }).addTo(map).bindPopup("<b>Вы здесь (Yury_Dev)</b>").openPopup();
+
+            // Сразу делаем первую проверку видимости
+            checkFogOfWar();
+
+        } catch (error) {
+            console.error("Ошибка загрузки точек:", error);
+        }
+    }
+
+    // 4. МЕХАНИКА СИМУЛЯЦИИ ХОДЬБЫ ДЛЯ ТЕСТОВ НА МАКЕ:
+    // При клике мышкой в любое место на карте, синяя точка "перешагивает" туда
+    map.on('click', function (e) {
+        userLat = e.latlng.lat;
+        userLon = e.latlng.lng;
+
+        // Перемещаем синий маркер игрока на карте плавно
+        if (userMarker) {
+            userMarker.setLatLng([userLat, userLon]);
+        }
+
+        console.log(`👣 Юзер сделал шаг в точку: ${userLat.toFixed(5)}, ${userLon.toFixed(5)}`);
+
+        // Снова проверяем, не попал ли какой-то мем в радиус 150 метров после шага
+        checkFogOfWar();
+    });
+
+    // Запускаем квест ID=2
+    loadGamePoints(GAME_ID);
+
+</script>
+</body>
+</html>
