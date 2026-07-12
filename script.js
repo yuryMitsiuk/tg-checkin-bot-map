@@ -506,7 +506,7 @@ globalThis.addEventListener('load', function() {
     if (gameIdFromUrl) {
         // Use the game ID from URL
         currentGameId = Number.parseInt(gameIdFromUrl);
-        console.log(`📥 Получен game_id из URL: ${gameId}`);
+        console.log(`📥 Получен game_id из URL: ${currentGameId}`);
         initGame(currentGameId);
     } else {
         // Fallback to default game ID (for testing purposes)
