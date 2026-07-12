@@ -1,0 +1,139 @@
+/* Main Styles */
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+#map {
+    width: 100vw;
+    height: 100vh;
+    background-color: #f0f0f0;
+}
+
+/* Enhanced UI for mobile devices */
+#meme-popup {
+    position: absolute; 
+    top: 50%; 
+    left: 50%; 
+    transform: translate(-50%, -50%);
+    width: 290px; 
+    height: 360px; 
+    background: rgba(19, 19, 22, 0.96);
+    border: 3px solid #ff3d00; 
+    border-radius: 8px; 
+    z-index: 2000;
+    display: none; 
+    text-align: center; 
+    color: white; 
+    font-family: 'Arial', sans-serif;
+    box-shadow: 0 0 30px rgba(255, 61, 0, 0.6);
+    padding: 15px;
+    box-sizing: border-box;
+}
+
+#meme-popup h3 {
+    margin: 12px 0; 
+    letter-spacing: 1px;
+    font-size: 18px;
+}
+
+#meme-popup model-viewer {
+    width: 100%; 
+    height: 220px; 
+    background: #2a2a30;
+    border-radius: 4px;
+    margin-bottom: 15px;
+}
+
+#capture-btn {
+    background: #ff3d00; 
+    color: white; 
+    border: none; 
+    padding: 12px 24px;
+    font-weight: bold; 
+    border-radius: 4px; 
+    cursor: pointer; 
+    margin-top: 14px;
+    font-size: 14px; 
+    letter-spacing: 0.5px; 
+    box-shadow: 0 4px 10px rgba(255,61,0,0.4);
+    width: 100%;
+    transition: all 0.2s ease;
+}
+
+#capture-btn:hover {
+    background: #ff5500;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(255,61,0,0.5);
+}
+
+#capture-btn:active {
+    transform: translateY(0);
+}
+
+/* Styles for notifications */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    border-radius: 8px;
+    color: white;
+    font-weight: bold;
+    z-index: 3000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transform: translateX(120%);
+    transition: transform 0.3s ease;
+}
+
+.notification.show {
+    transform: translateX(0);
+}
+
+.notification.success {
+    background: #4caf50;
+}
+
+.notification.error {
+    background: #f44336;
+}
+
+.notification.info {
+    background: #2196f3;
+}
+
+/* Styles for progress indicator */
+#progress-indicator {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-size: 14px;
+    z-index: 1000;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    #meme-popup {
+        width: 90vw;
+        height: 400px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+    
+    #meme-popup h3 {
+        font-size: 16px;
+    }
+    
+    #capture-btn {
+        padding: 10px 15px;
+        font-size: 16px;
+    }
+}
