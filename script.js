@@ -469,4 +469,24 @@ if (isDevelopment) {
 }
 
 // Initialize the game when page loads
-globalThis.addEventListener('load', initGame);
+globalThis.addEventListener('load', function() {
+    // Extract game_id from URL parameters
+    const urlParams = new URLSearchParams(globalThis.location.search);
+    const gameId = urlParams.get('game_id');
+    
+    if (gameId) {
+        // Use the game ID from URL
+        loadGamePoints(Number.parseInt(gameId));
+    } else {
+        // Fallback to default game ID (for testing purposes)
+        console.warn("No game_id found in URL, using default game ID");
+        // In development mode, we should still initialize the game with fake data
+        // but skip the API call for points since we don't have a backend running
+        if (isDevelopment) {
+            // Initialize with fake location and user data
+            initGame();
+        } else {
+            loadGamePoints(1);
+        }
+    }
+});
