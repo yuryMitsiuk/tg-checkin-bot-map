@@ -19,6 +19,9 @@ window.onerror = function(message, source, lineno, colno, error) {
 // Main JavaScript Logic
 console.log("Логика JavaScript запущена!");
 
+// Main JavaScript Logic
+console.log("Логика JavaScript запущена!");
+
 /**
  * Configuration for different environments
  * @typedef {Object} Config
@@ -410,16 +413,92 @@ function handleUserLocation(lat, lon) {
 }
 
 /**
+ * Launches continuous tracking via Telegram API geolocation
+ * @returns {void}
+ */
+function startContinuousTracking() {
+    // ✅ Правильное название метода: startUpdatingPosition
+    if (tg?.Location && typeof tg.Location.startUpdatingPosition === 'function') {
+        console.log("🔄 Запускаем непрерывное отслеживание позиции...");
+
+        tg.Location.startUpdatingPosition((location) => {
+            if (location && location.latitude) {
+                console.log("📍 Обновлена геолокация:", location.latitude.toFixed(5), location.longitude.toFixed(5));
+                handleUserLocation(location.latitude, location.longitude);
+            }
+        });
+    } else {
+        console.log("⚠️ Непрерывное отслеживание не поддерживается");
+    }
+}
+
+/**
+ * Gets user's real location using Telegram WebApp location API
+ * @returns {void}
+ */
+function getUserTelegramLocation() {
+    // Check if Telegram WebApp has location support
+    if (tg?.Location) {
+        // Use Telegram's native location API
+        tg.Location.request().then((location) => {
+            if (location) {
+                console.log("📍 Получена геолокация от Telegram:", location);
+                handleUserLocation(location.latitude, location.longitude);
+                startContinuousTracking();
+            } else {
+                console.warn("Telegram location request was cancelled or failed");
+                // Fallback to browser geolocation
+                getUserBrowserLocation();
+            }
+        }).catch((error) => {
+            console.error("Ошибка запроса геолокации через Telegram:", error);
+            // Fallback to browser geolocation
+            getUserBrowserLocation();
+        });
+    } else {
+        // Fallback to browser geolocation
+        getUserBrowserLocation();
+    }
+}
+
+/**
+ * Launches continuous tracking via browser geolocation
+ * @returns {void}
+ */
+function startBrowserContinuousTracking() {
+    if (navigator.geolocation && typeof navigator.geolocation.watchPosition === 'function') {
+        console.log("🔄 Запускаем непрерывное отслеживание через браузер...");
+
+        navigator.geolocation.watchPosition(
+            (position) => {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+                handleUserLocation(lat, lon);
+            },
+            (error) => {
+                console.error("❌ Ошибка непрерывного отслеживания:", error);
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 60000
+            }
+        );
+    }
+}
+
+/**
  * Gets user's real location using browser geolocation API
  * @returns {void}
  */
-function getUserRealLocation() {
+function getUserBrowserLocation() {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
             (position) => {
                 const lat = position.coords.latitude;
                 const lon = position.coords.longitude;
                 handleUserLocation(lat, lon);
+                startBrowserContinuousTracking();
             },
             (error) => {
                 console.error("Ошибка получения геолокации:", error);
@@ -479,8 +558,8 @@ function initGame(gameId) {
         const fakeLocation = getUserLocation();
         handleUserLocation(fakeLocation.lat, fakeLocation.lon);
     } else {
-        // In production mode, try to get real location
-        getUserRealLocation();
+        // In production mode, try to get real location using priority: Telegram > Browser > Dev
+        getUserTelegramLocation();
     }
     
     // Load game points
