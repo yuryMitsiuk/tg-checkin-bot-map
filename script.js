@@ -1,3 +1,21 @@
+// УСТАНОВИТЬ В САМЫЙ ВЕРХ SCRIPT.JS
+window.onerror = function(message, source, lineno, colno, error) {
+    const errorDiv = document.createElement('div');
+    errorDiv.style.position = 'fixed';
+    errorDiv.style.top = '0'; errorDiv.style.left = '0';
+    errorDiv.style.width = '100%'; errorDiv.style.height = '100%';
+    errorDiv.style.background = 'rgba(0,0,0,0.9)';
+    errorDiv.style.color = '#ff3d00'; errorDiv.style.padding = '20px';
+    errorDiv.style.zIndex = '99999'; errorDiv.style.overflow = 'scroll';
+    errorDiv.style.fontFamily = 'monospace';
+    errorDiv.innerHTML = `<h3>🚨 КРИТИЧЕСКАЯ ОШИБКА:</h3>
+                          <p><b>Сообщение:</b> ${message}</p>
+                          <p><b>Файл:</b> ${source}</p>
+                          <p><b>Строка:</b> ${lineno}:${colno}</p>`;
+    document.body.appendChild(errorDiv);
+    return false;
+};
+
 // Main JavaScript Logic
 console.log("Логика JavaScript запущена!");
 
