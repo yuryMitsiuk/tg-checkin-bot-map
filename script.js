@@ -52,7 +52,7 @@ const VISIBILITY_RADIUS = 150;
  * Game ID for backend API calls
  * @type {number}
  */
-const GAME_ID = 1;
+let currentGameId = 1;
 
 /**
  * Set to store IDs of collected points
@@ -208,7 +208,7 @@ async function sendProgressToServer() {
                 tg_id: userId,
                 username: username,
                 first_name: firstName,
-                game_id: GAME_ID,
+                game_id: currentGameId,
                 points_found: visitedPoints.size // Сколько мемов мы уже собрали
             })
         });
@@ -320,6 +320,13 @@ async function loadGamePoints(gameId) {
     try {
         const response = await fetch(`${API_BASE_URL}/api/games/${gameId}/points`);
         const points = await response.json();
+
+        // Check if points is actually an array
+        if (!Array.isArray(points)) {
+            console.error("Received data is not an array:", points);
+            showNotification("Ошибка загрузки точек: Некорректный формат данных", "error");
+            return;
+        }
 
         // Сохраняем точки в наш массив, но на карту изначально НЕ ДОБАВЛЯЕМ!
         targetPoints = points.map((p, idx) => ({
@@ -455,7 +462,7 @@ function initGame() {
     }
     
     // Load game points
-    loadGamePoints(GAME_ID);
+    loadGamePoints(currentGameId);
 }
 
 /**
@@ -476,7 +483,8 @@ globalThis.addEventListener('load', function() {
     
     if (gameId) {
         // Use the game ID from URL
-        loadGamePoints(Number.parseInt(gameId));
+        currentGameId = Number.parseInt(gameId);
+        loadGamePoints(currentGameId);
     } else {
         // Fallback to default game ID (for testing purposes)
         console.warn("No game_id found in URL, using default game ID");
@@ -486,7 +494,10 @@ globalThis.addEventListener('load', function() {
             // Initialize with fake location and user data
             initGame();
         } else {
-            loadGamePoints(1);
+            // For production, we still need to load points, but we can use a fallback
+            // or show an error message
+            console.error("No game_id provided in production mode");
+            showNotification("Ошибка: Не удалось определить ID игры", "error");
         }
     }
 });
