@@ -19,7 +19,7 @@ console.log("Логика JavaScript запущена!");
 const CONFIG = {
     // Development mode - allows local testing with fake data
     DEVELOPMENT: {
-        enabled: true,
+        enabled: false,
         fakeUser: {
             id: 99999,
             username: "macbook_tester",
@@ -32,7 +32,7 @@ const CONFIG = {
     },
     // Production mode - uses real data
     PRODUCTION: {
-        enabled: false
+        enabled: true
     }
 };
 
@@ -40,7 +40,7 @@ const CONFIG = {
  * API base URL for backend communication
  * @type {string}
  */
-const API_BASE_URL = "http://127.0.0.1:8000";
+const API_BASE_URL = "https://tg-checkin-bot-server.onrender.com";
 
 /**
  * Visibility radius for fog of war in meters
