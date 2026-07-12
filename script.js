@@ -440,7 +440,11 @@ function getUserRealLocation() {
  * Initializes the game by setting up user data and location
  * @returns {void}
  */
-function initGame() {
+function initGame(gameId) {
+    console.log(`🎮 Инициализация игры #${gameId}`);
+
+    // Устанавливаем ID игры
+    currentGameId = gameId;
     // Get user data
     currentUserData = getUserData();
     currentUserId = currentUserData?.id || 99999;
@@ -479,12 +483,13 @@ if (isDevelopment) {
 globalThis.addEventListener('load', function() {
     // Extract game_id from URL parameters
     const urlParams = new URLSearchParams(globalThis.location.search);
-    const gameId = urlParams.get('game_id');
+    const gameIdFromUrl = urlParams.get('game_id');
     
-    if (gameId) {
+    if (gameIdFromUrl) {
         // Use the game ID from URL
-        currentGameId = Number.parseInt(gameId);
-        loadGamePoints(currentGameId);
+        currentGameId = Number.parseInt(gameIdFromUrl);
+        console.log(`📥 Получен game_id из URL: ${gameId}`);
+        initGame(currentGameId);
     } else {
         // Fallback to default game ID (for testing purposes)
         console.warn("No game_id found in URL, using default game ID");
@@ -492,7 +497,7 @@ globalThis.addEventListener('load', function() {
         // but skip the API call for points since we don't have a backend running
         if (isDevelopment) {
             // Initialize with fake location and user data
-            initGame();
+            initGame(currentGameId);
         } else {
             // For production, we still need to load points, but we can use a fallback
             // or show an error message
