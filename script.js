@@ -1,11 +1,15 @@
-window.onerror = function(message, source, lineno, colno, error) {
+window.onerror = function (message, source, lineno, colno, error) {
     const errorDiv = document.createElement('div');
     errorDiv.style.position = 'fixed';
-    errorDiv.style.top = '0'; errorDiv.style.left = '0';
-    errorDiv.style.width = '100%'; errorDiv.style.height = '100%';
+    errorDiv.style.top = '0';
+    errorDiv.style.left = '0';
+    errorDiv.style.width = '100%';
+    errorDiv.style.height = '100%';
     errorDiv.style.background = 'rgba(0,0,0,0.9)';
-    errorDiv.style.color = '#ff3d00'; errorDiv.style.padding = '20px';
-    errorDiv.style.zIndex = '99999'; errorDiv.style.overflow = 'scroll';
+    errorDiv.style.color = '#ff3d00';
+    errorDiv.style.padding = '20px';
+    errorDiv.style.zIndex = '99999';
+    errorDiv.style.overflow = 'scroll';
     errorDiv.style.fontFamily = 'monospace';
     errorDiv.innerHTML = `<h3>🚨 КРИТИЧЕСКАЯ ОШИБКА:</h3>
                           <p><b>Сообщение:</b> ${message}</p>
@@ -105,10 +109,10 @@ const isDevelopment = CONFIG.DEVELOPMENT.enabled;
  * @type {string[]}
  */
 const MEME_MODEL_PATHS = [
-    { glb: "./models/67_brainrot.glb", usdz: "./models/67_brainrot.usdz" },
-    { glb: "./models/ballerina_cappuccina_brainrot.glb", usdz: "./models/ballerina_cappuccina_brainrot.usdz" },
-    { glb: "./models/tralalero_tralala.glb", usdz: "./models/tralalero_tralala.usdz" },
-    { glb: "./models/bombardiro_crocodilo.glb", usdz: "./models/bombardiro_crocodilo.usdz" }
+    {glb: "./models/67_brainrot.glb", usdz: "./models/67_brainrot.usdz"},
+    {glb: "./models/ballerina_cappuccina_brainrot.glb", usdz: "./models/ballerina_cappuccina_brainrot.usdz"},
+    {glb: "./models/tralalero_tralala.glb", usdz: "./models/tralalero_tralala.usdz"},
+    {glb: "./models/bombardiro_crocodilo.glb", usdz: "./models/bombardiro_crocodilo.usdz"}
 ];
 
 
@@ -271,9 +275,9 @@ function showNotification(message, type = "info") {
     const notification = document.createElement('div');
     notification.className = `notification ${type} show`;
     notification.textContent = message;
-    
+
     container.appendChild(notification);
-    
+
     // Автоматически удаляем уведомление через 3 секунды
     setTimeout(() => {
         notification.classList.remove('show');
@@ -309,7 +313,8 @@ function showARPopup(point) {
 
     // 1. Подставляем нужную модель
     modelViewer.src = point.modelSrc;
-    modelViewer.iosSrc = point.modelSrcIos;
+    // modelViewer.iosSrc = point.modelSrcIos;
+    modelViewer.setAttribute('ios-src', point.modelSrcIos);
 
     // 2. Скрываем кнопку захвата изначально
     captureBtn.style.display = 'none';
@@ -334,7 +339,7 @@ function showARPopup(point) {
     modelViewer.addEventListener('ar-status', onArStatus);
 
     // 5. Логика кнопки "Забрать"
-    captureBtn.onclick = function() {
+    captureBtn.onclick = function () {
         arPopup.style.display = 'none';
 
         if (point.markerInstance) {
@@ -345,7 +350,7 @@ function showARPopup(point) {
     };
 
     // 6. Логика кнопки "Отмена"
-    closeBtn.onclick = function() {
+    closeBtn.onclick = function () {
         arPopup.style.display = 'none';
         visitedPoints.delete(point.id); // Разрешаем попробовать снова
         updateProgressIndicator();
@@ -373,7 +378,7 @@ function checkFogOfWar() {
         // 2. ВХОД В ЗОНУ ВЗЯТИЯ ТОЧКИ (15 метров)
         if (distance <= 15 && !visitedPoints.has(point.id)) {
             visitedPoints.add(point.id);
-            console.log(`🎯 Вход в зону AR! Модель: ${point.modelSrc}`);
+            console.log(`🎯 Вход в зону AR! Модель: ${point.modelSrc}  ${point.modelSrcIos}`);
 
             showARPopup(point);
         }
@@ -443,10 +448,10 @@ async function loadGamePoints(gameId) {
 function handleUserLocation(lat, lon) {
     userLat = lat;
     userLon = lon;
-    
+
     // Center map on user location
     map.setView([userLat, userLon], 15);
-    
+
     // Update user marker
     if (userMarker) {
         userMarker.setLatLng([userLat, userLon]);
@@ -459,9 +464,9 @@ function handleUserLocation(lat, lon) {
             radius: 10
         }).addTo(map).bindPopup("<b>Вы здесь</b>");
     }
-    
+
     console.log(`📍 Пользователь находится в точке: ${userLat.toFixed(5)}, ${userLon.toFixed(5)}`);
-    
+
     // Check fog of war after location update
     checkFogOfWar();
 }
@@ -599,7 +604,7 @@ function initGame(gameId) {
     // Get user data
     currentUserData = getUserData();
     currentUserId = currentUserData?.id || 99999;
-    
+
     // Get user location (real or fake)
     if (isDevelopment) {
         // In development mode, use fake location
@@ -609,10 +614,10 @@ function initGame(gameId) {
         // In production mode, try to get real location using priority: Telegram > Browser > Dev
         getUserTelegramLocation();
     }
-    
+
     // Load game points
     loadGamePoints(currentGameId);
-    
+
     // Show onboarding for new users after game is initialized
     if (shouldShowOnboarding()) {
         // Small delay to let the map render first
@@ -638,14 +643,14 @@ async function loadGameHub() {
     try {
         // Скачиваем список активных игр с нашего нового роута FastAPI
         const response = await fetch(`${API_BASE_URL}/api/games`);
-        
+
         // Check if response is OK
         if (!response.ok) {
             console.error(`Ошибка HTTP: ${response.status}`);
             gamesListContainer.innerHTML = '<p class="hub-error-message">Ошибка связи с сервером бэкенда.</p>';
             return;
         }
-        
+
         const games = await response.json();
 
         // Validate that games is an array
@@ -667,7 +672,7 @@ async function loadGameHub() {
             btn.innerHTML = `<span>🎮 ${game.name}</span> <span class="hub-game-arrow">▶</span>`;
 
             // Логика нажатия на игру из списка:
-            btn.onclick = function() {
+            btn.onclick = function () {
                 hubOverlay.style.display = 'none'; // Прячем стартовое меню
                 currentGameId = game.id;                 // Записываем выбор в глобальную переменную
 
@@ -783,7 +788,7 @@ function shouldShowOnboarding() {
     if (isDevelopment) {
         return true;
     }
-    
+
     try {
         return localStorage.getItem('memeQuestsOnboardingCompleted') !== 'true';
     } catch (error) {
@@ -828,14 +833,14 @@ if (isDevelopment) {
 }
 
 // Initialize the game when page loads
-globalThis.addEventListener('load', function() {
+globalThis.addEventListener('load', function () {
     // Setup onboarding controls
     setupOnboarding();
 
     // Extract game_id from URL parameters
     const urlParams = new URLSearchParams(globalThis.location.search);
     const gameIdFromUrl = urlParams.get('game_id');
-    
+
     if (gameIdFromUrl) {
         // Use the game ID from URL
         currentGameId = Number.parseInt(gameIdFromUrl);
