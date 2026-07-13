@@ -156,6 +156,105 @@ html, body {
 }
 
 /* =========================================
+   GAME HUB STYLES
+   ========================================= */
+#game-hub-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: radial-gradient(circle, #1e1e24 0%, #131316 100%);
+    z-index: 3000;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-family: 'Arial', sans-serif;
+    box-sizing: border-box;
+    padding: 20px;
+}
+
+.hub-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.hub-header h1 {
+    margin: 0;
+    font-size: 26px;
+    color: #ff3d00;
+    letter-spacing: 2px;
+    text-shadow: 0 0 15px rgba(255, 61, 0, 0.5);
+}
+
+.hub-header p {
+    margin: 8px 0 0 0;
+    color: #aaaaaa;
+    font-size: 14px;
+}
+
+#hub-games-list {
+    width: 100%;
+    max-width: 320px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.hub-loading-text {
+    text-align: center;
+    color: #666;
+}
+
+.hub-empty-message,
+.hub-error-message {
+    text-align: center;
+    color: #ff3d00;
+}
+
+.hub-empty-message {
+    font-weight: bold;
+}
+
+.hub-game-btn {
+    width: 100%;
+    background: #1a1a1f;
+    color: white;
+    border: 2px solid #ff3d00;
+    padding: 14px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s ease;
+}
+
+.hub-game-btn:hover {
+    background: #ff3d00;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(255, 61, 0, 0.4);
+}
+
+.hub-game-btn:active {
+    transform: translateY(0);
+}
+
+.hub-game-arrow {
+    color: #ff3d00;
+}
+
+.hub-game-btn:hover .hub-game-arrow {
+    color: white;
+}
+
+/* =========================================
    RESPONSIVE STYLES
    ========================================= */
 @media (max-width: 768px) {
@@ -171,5 +270,14 @@ html, body {
     .notification {
         max-width: 85vw;
         font-size: 13px;
+    }
+
+    .hub-header h1 {
+        font-size: 22px;
+    }
+
+    .hub-game-btn {
+        font-size: 14px;
+        padding: 12px 16px;
     }
 }

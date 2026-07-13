@@ -34,12 +34,23 @@
 <!-- Подключаем внешний JavaScript -->
 <script src="script.js"></script>
 
-<!-- AR Popup Window (Вставь это в конец body) -->
-<div id="ar-popup" style="
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.95); z-index: 3000;
-    display: none; flex-direction: column; align-items: center; justify-content: center;">
-    <h2 style="color: white; margin-bottom: 10px;">📸 НАЙДИ МЕМА!</h2>
+<!-- Стартовое меню выбора квестов (Игровой Хаб) -->
+<div id="game-hub-overlay">
+    <div class="hub-header">
+        <h1>🤌 MEME QUESTS</h1>
+        <p>Выберите доступное соревнование из списка ниже:</p>
+    </div>
+
+    <!-- Сюда JavaScript динамически вставит кнопки с играми -->
+    <div id="hub-games-list">
+        <p class="hub-loading-text">Загрузка доступных миров...</p>
+    </div>
+</div>
+
+
+<!-- AR Popup Window -->
+<div id="ar-popup">
+    <h2>📸 НАЙДИ МЕМА!</h2>
 
     <model-viewer
             id="ar-model-viewer"
@@ -49,27 +60,17 @@
             ar-modes="webxr scene-viewer quick-look"
             camera-controls
             auto-rotate
-            shadow-intensity="1"
-            style="width: 100%; height: 70%; background: transparent;">
-        <button slot="ar-button" style="
-            background-color: #ff3d00; border-radius: 4px; border: none; color: white;
-            padding: 16px 32px; position: absolute; bottom: 20%; left: 50%;
-            transform: translateX(-50%); font-weight: bold; cursor: pointer;">
+            shadow-intensity="1">
+        <button slot="ar-button" id="ar-launch-btn">
             🚀 ЗАПУСТИТЬ AR
         </button>
     </model-viewer>
 
-    <button id="ar-capture-btn" style="
-        background: #00c853; color: white; border: none; padding: 15px 30px;
-        font-size: 18px; font-weight: bold; border-radius: 50px;
-        cursor: pointer; margin-top: 20px; display: none;">
+    <button id="ar-capture-btn">
         🎯 ЗАБРАТЬ!
     </button>
 
-    <button id="ar-close-btn" style="
-        position: absolute; top: 20px; right: 20px;
-        background: rgba(255,255,255,0.2); color: white; border: none;
-        padding: 10px 20px; border-radius: 20px; cursor: pointer;">
+    <button id="ar-close-btn">
         ✕
     </button>
 </div>
