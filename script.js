@@ -105,10 +105,10 @@ const isDevelopment = CONFIG.DEVELOPMENT.enabled;
  * @type {string[]}
  */
 const MEME_MODEL_PATHS = [
-    "./models/67_brainrot.glb",
-    "./models/ballerina_cappuccina_brainrot.glb",
-    "./models/tralalero_tralala.glb",
-    "./models/Astronaut.glb"
+    { glb: "./models/67_brainrot.glb", usdz: "./models/67_brainrot.usdz" },
+    { glb: "./models/ballerina_cappuccina_brainrot.glb", usdz: "./models/ballerina_cappuccina_brainrot.usdz" },
+    { glb: "./models/tralalero_tralala.glb", usdz: "./models/tralalero_tralala.usdz" },
+    { glb: "./models/bombardiro_crocodilo.glb", usdz: "./models/bombardiro_crocodilo.usdz" }
 ];
 
 
@@ -296,7 +296,8 @@ function showNotification(message, type = "info") {
  *
  * @param {Object} point - The object of the game point.
  * @param {number} point.id - Unique identifier of the point.
- * @param {string} point.modelSrc is the path to the 3D model file (for example, './models/Astronaut.glb').
+ * @param {string} point.modelSrc is the path to the 3D model file (for example, './models/67_brainrot.glb').
+ * @param {string} point.modelSrcIos is the path to the 3D model file (for example, './models/67_brainrot.usdz').
  * @param {Object|null} point.markerInstance is an instance of the Leaflet marker for status updates.
  * @returns {void}
  */
@@ -308,6 +309,7 @@ function showARPopup(point) {
 
     // 1. Подставляем нужную модель
     modelViewer.src = point.modelSrc;
+    modelViewer.iosSrc = point.modelSrcIos;
 
     // 2. Скрываем кнопку захвата изначально
     captureBtn.style.display = 'none';
@@ -411,7 +413,8 @@ async function loadGamePoints(gameId) {
                 lat: p.lat,
                 lon: p.lon,
                 id: idx,
-                modelSrc: modelFile,
+                modelSrc: modelFile.glb,
+                modelSrcIos: modelFile.usdz,
                 markerInstance: null
             };
         });
