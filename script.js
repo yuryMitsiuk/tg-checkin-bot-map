@@ -306,47 +306,73 @@ function showNotification(message, type = "info") {
  * @returns {void}
  */
 function showARPopup(point) {
-    console.log("Start showARPopup with point: ", point);
     const arPopup = document.getElementById('ar-popup');
     const modelViewer = document.getElementById('ar-model-viewer');
     const myBtn = document.getElementById('my-super-ar-btn');
     const captureBtn = document.getElementById('ar-capture-btn');
     const closeBtn = document.getElementById('ar-close-btn');
 
-    console.log("modelSrc:", point.modelSrc);
-    console.log("modelSrcIos:", point.modelSrcIos);
+    // ✅ ДОБАВЛЯЕМ СЮДА КНОПКУ ВЫХОДА
+    const exitArBtn = document.getElementById('exit-ar-btn');
 
-    // 1. Задаем модели для превью
+    console.log("Загрузка моделей:", point.modelSrc, point.modelSrcIos);
     modelViewer.src = point.modelSrc;
     modelViewer.iosSrc = point.modelSrcIos;
 
-    // 2. Сброс кнопок
+    // Сброс кнопок
     myBtn.style.display = 'block';
     captureBtn.style.display = 'none';
+    if (exitArBtn) exitArBtn.style.display = 'none'; // Скрываем кнопку выхода при старте
 
-    // 3. Показываем окно
+    // Показываем окно
     arPopup.style.display = 'flex';
 
-    // 4. ХАК ДЛЯ IOS: Прямой вызов Quick Look через ссылку
-    myBtn.onclick = () => {
-        console.log("🚀 Попытка нативного запуска AR...");
+    // 4. Логика кнопки "Запустить AR"
+    myBtn.onclick = async () => {
+        console.log("🔥 Запуск AR...");
 
-        // Создаем временную ссылку
-        const a = document.createElement('a');
-        a.href = point.modelSrcIos; // Ссылка на .usdz файл
-        a.rel = 'ar';               // ГОВОРИМ IPHONE: "ЭТО AR ФАЙЛ!"
-        a.click();                  // ИМИТИРУЕМ КЛИК
+        // Делаем фон прозрачным, чтобы видеть камеру
+        arPopup.style.background = 'transparent';
+
+        // Показываем кнопку выхода
+        if (exitArBtn) exitArBtn.style.display = 'block';
+
+        try {
+            await modelViewer.activateAR();
+        } catch (e) {
+            console.error("Ошибка AR:", e);
+            alert("Не удалось запустить камеру: " + e.message);
+            arPopup.style.background = 'rgba(0,0,0,0.9)';
+            if (exitArBtn) exitArBtn.style.display = 'none';
+        }
     };
 
-    // 5. Слушаем статус (для Android/WebXR это сработает, для iOS - нет, но нам уже все равно)
+    // ✅ Логика кнопки выхода из AR
+    if (exitArBtn) {
+        exitArBtn.onclick = () => {
+            // Сбрасываем сессию AR
+            if (modelViewer.dismissSession) {
+                modelViewer.dismissSession();
+            }
+            arPopup.style.background = 'rgba(0,0,0,0.9)';
+            exitArBtn.style.display = 'none';
+            arPopup.style.display = 'none'; // Закрываем всё окно
+            visitedPoints.delete(point.id); // Разрешаем попробовать снова
+            updateProgressIndicator();
+        };
+    }
+
+    // 5. Слушаем статус AR
     modelViewer.addEventListener('ar-status', (event) => {
+        console.log("Статус AR:", event.detail.status);
         if (event.detail.status === 'object-placed') {
             myBtn.style.display = 'none';
+            if (exitArBtn) exitArBtn.style.display = 'none'; // Прячем кнопку выхода, когда мем встал
             captureBtn.style.display = 'block';
         }
     });
 
-    // 6. Логика кнопок "Забрать" и "Закрыть"
+    // 6. Логика кнопки "Забрать"
     captureBtn.onclick = () => {
         arPopup.style.display = 'none';
         if (point.markerInstance) {
@@ -355,6 +381,7 @@ function showARPopup(point) {
         sendProgressToServer();
     };
 
+    // 7. Логика кнопки "Отмена" (крестик)
     closeBtn.onclick = () => {
         arPopup.style.display = 'none';
         visitedPoints.delete(point.id);
