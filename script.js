@@ -310,37 +310,57 @@ function showARPopup(point) {
     const modelViewer = document.getElementById('ar-model-viewer');
     const captureBtn = document.getElementById('ar-capture-btn');
     const closeBtn = document.getElementById('ar-close-btn');
+    const launchBtn = document.getElementById('ar-launch-btn');
 
     console.log("GLB:", point.modelSrc);
     console.log("USDZ:", point.modelSrcIos);
 
-    // 1. Подставляем нужную модель
-    modelViewer.src = point.modelSrc;
-    modelViewer.iosSrc = point.modelSrcIos;
+    // 1. Подставляем нужную модель (ОБЯЗАТЕЛЬНО через свойства)
+    modelViewer.src = point.modelSrc;       // Для Android/Web
+    modelViewer.iosSrc = point.modelSrcIos; // Для iOS
 
-    // 2. Скрываем кнопку захвата изначально
-    captureBtn.style.display = 'none';
+    // 2. Настраиваем кнопки перед показом
+    if (launchBtn) {
+        launchBtn.style.display = 'block'; // Показываем кнопку запуска
+    }
+
+    captureBtn.style.display = 'none';     // Скрываем кнопку "Забрать"
     captureBtn.textContent = "🎯 Я ВИЖУ ЕГО! ЗАБРАТЬ!";
-    captureBtn.disabled = false;
 
     // 3. Показываем окно
     arPopup.style.display = 'flex';
 
-    // 4. Слушаем событие "Мем встал на поверхность"
-    // Это сработает, когда игрок наведет камеру на пол и мем "прилипнет"
+    // 4. ВАЖНО: Логика кнопки "Запустить AR"
+    if (launchBtn) {
+        launchBtn.onclick = async () => {
+            console.log("🚀 Попытка запуска AR...");
+            try {
+                // Эта команда открывает камеру на iPhone/Android
+                await modelViewer.activateAR();
+            } catch (error) {
+                console.error("Ошибка запуска AR:", error);
+                alert("Не удалось запустить камеру. Проверьте разрешения.");
+            }
+        };
+    }
+
+    // 5. Слушаем событие "Мем встал на поверхность"
     const onArStatus = (event) => {
         if (event.detail.status === 'object-placed') {
-            console.log("✅ AR-объект успешно размещен в пространстве!");
-            captureBtn.style.display = 'inline-block'; // Показываем кнопку только теперь
+            console.log("✅ AR-объект успешно размещен!");
 
-            // Удаляем слушатель, чтобы не срабатывал лишний раз
+            // Когда мем появился в камере:
+            if (launchBtn) launchBtn.style.display = 'none'; // Прячем кнопку запуска
+            captureBtn.style.display = 'inline-block';       // Показываем кнопку "Забрать"
+
+            // Удаляем слушатель, чтобы не дублировался
             modelViewer.removeEventListener('ar-status', onArStatus);
         }
     };
 
     modelViewer.addEventListener('ar-status', onArStatus);
 
-    // 5. Логика кнопки "Забрать"
+    // 6. Логика кнопки "Забрать"
     captureBtn.onclick = function () {
         arPopup.style.display = 'none';
 
@@ -351,11 +371,14 @@ function showARPopup(point) {
         sendProgressToServer();
     };
 
-    // 6. Логика кнопки "Отмена"
+    // 7. Логика кнопки "Отмена"
     closeBtn.onclick = function () {
         arPopup.style.display = 'none';
-        visitedPoints.delete(point.id); // Разрешаем попробовать снова
+        visitedPoints.delete(point.id);
         updateProgressIndicator();
+
+        // Возвращаем кнопку запуска для следующего раза
+        if (launchBtn) launchBtn.style.display = 'block';
     };
 }
 
