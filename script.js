@@ -363,14 +363,6 @@ async function loadGamePoints(gameId) {
 
         console.log(`Загружено ${targetPoints.length} скрытых точек. Они покрыты туманом войны!`);
 
-        // Рисуем игрока на стартовой позиции
-        userMarker = L.circleMarker([userLat, userLon], {
-            color: '#007aff',
-            fillColor: '#007aff',
-            fillOpacity: 0.8,
-            radius: 10
-        }).addTo(map).bindPopup("<b>Вы здесь</b>");
-
         // Сразу делаем первую проверку видимости
         checkFogOfWar();
 
