@@ -306,13 +306,17 @@ function showNotification(message, type = "info") {
  * @returns {void}
  */
 function showARPopup(point) {
+    console.log("Start showARPopup with point: ", point);
     const arPopup = document.getElementById('ar-popup');
     const modelViewer = document.getElementById('ar-model-viewer');
     const myBtn = document.getElementById('my-super-ar-btn');
     const captureBtn = document.getElementById('ar-capture-btn');
     const closeBtn = document.getElementById('ar-close-btn');
 
-    // 1. Задаем модели
+    console.log("modelSrc:", point.modelSrc);
+    console.log("modelSrcIos:", point.modelSrcIos);
+
+    // 1. Задаем модели для превью
     modelViewer.src = point.modelSrc;
     modelViewer.iosSrc = point.modelSrcIos;
 
@@ -323,18 +327,18 @@ function showARPopup(point) {
     // 3. Показываем окно
     arPopup.style.display = 'flex';
 
-    // 4. САМОЕ ВАЖНОЕ: Клик по нашей кнопке
-    myBtn.onclick = async () => {
-        console.log("🔥 ПРЯМОЙ ВЫЗОВ AR...");
-        try {
-            // Этот метод работает на iOS даже если слоты глючат
-            await modelViewer.activateAR();
-        } catch (e) {
-            alert("Ошибка AR: " + e.message);
-        }
+    // 4. ХАК ДЛЯ IOS: Прямой вызов Quick Look через ссылку
+    myBtn.onclick = () => {
+        console.log("🚀 Попытка нативного запуска AR...");
+
+        // Создаем временную ссылку
+        const a = document.createElement('a');
+        a.href = point.modelSrcIos; // Ссылка на .usdz файл
+        a.rel = 'ar';               // ГОВОРИМ IPHONE: "ЭТО AR ФАЙЛ!"
+        a.click();                  // ИМИТИРУЕМ КЛИК
     };
 
-    // 5. Когда объект встал на пол
+    // 5. Слушаем статус (для Android/WebXR это сработает, для iOS - нет, но нам уже все равно)
     modelViewer.addEventListener('ar-status', (event) => {
         if (event.detail.status === 'object-placed') {
             myBtn.style.display = 'none';
@@ -342,10 +346,12 @@ function showARPopup(point) {
         }
     });
 
-    // 6. Логика сбора и закрытия (без изменений)
+    // 6. Логика кнопок "Забрать" и "Закрыть"
     captureBtn.onclick = () => {
         arPopup.style.display = 'none';
-        if (point.markerInstance) point.markerInstance.setPopupContent(`<b>✅ Собран!</b>`).openPopup();
+        if (point.markerInstance) {
+            point.markerInstance.setPopupContent(`<b>✅ Мем собран!</b>`).openPopup();
+        }
         sendProgressToServer();
     };
 
