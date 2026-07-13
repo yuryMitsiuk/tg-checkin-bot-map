@@ -156,6 +156,163 @@ html, body {
 }
 
 /* =========================================
+   ONBOARDING STYLES
+   ========================================= */
+#onboarding-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.92);
+    z-index: 5000;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.onboarding-card {
+    width: 100%;
+    max-width: 360px;
+    background: linear-gradient(145deg, #1e1e24, #131316);
+    border-radius: 16px;
+    padding: 30px 24px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(255, 61, 0, 0.3);
+    text-align: center;
+}
+
+.onboarding-content {
+    min-height: 280px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.onboarding-step {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.onboarding-step.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.onboarding-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+    line-height: 1;
+}
+
+.onboarding-step h2 {
+    color: #ff3d00;
+    font-size: 22px;
+    margin: 0 0 16px 0;
+    font-weight: bold;
+}
+
+.onboarding-step p {
+    color: #cccccc;
+    font-size: 15px;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.onboarding-progress {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin: 24px 0;
+}
+
+.onboarding-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+}
+
+.onboarding-dot.active {
+    background: #ff3d00;
+    width: 24px;
+    border-radius: 4px;
+}
+
+.onboarding-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.onboarding-btn {
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+    flex: 1;
+}
+
+.onboarding-btn.primary {
+    background: #ff3d00;
+    color: white;
+}
+
+.onboarding-btn.primary:hover {
+    background: #ff5500;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 61, 0, 0.4);
+}
+
+.onboarding-btn.secondary {
+    background: transparent;
+    color: #aaaaaa;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.onboarding-btn.secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+/* Help Button */
+#help-btn {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    font-size: 20px;
+    cursor: pointer;
+    z-index: 1001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+    transition: all 0.2s ease;
+}
+
+#help-btn:hover {
+    background: #ff3d00;
+    transform: scale(1.1);
+}
+
+/* =========================================
    GAME HUB STYLES
    ========================================= */
 #game-hub-overlay {
