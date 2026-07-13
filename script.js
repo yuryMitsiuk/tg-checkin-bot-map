@@ -328,23 +328,21 @@ function showARPopup(point) {
     arPopup.style.display = 'flex';
 
     // 4. Логика кнопки "Запустить AR"
-    myBtn.onclick = async () => {
-        console.log("🔥 Запуск AR...");
+    myBtn.onclick = () => {
+        console.log("🚀 Попытка нативного Quick Look...");
 
-        // Делаем фон прозрачным, чтобы видеть камеру
-        arPopup.style.background = 'transparent';
+        // Создаем временную ссылку
+        const link = document.createElement('a');
+        link.href = point.modelSrcIos; // Путь к .usdz
+        link.rel = "ar"; // Магический атрибут для iOS
 
-        // Показываем кнопку выхода
-        if (exitArBtn) exitArBtn.style.display = 'block';
+        // Программно кликаем по ней
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
 
-        try {
-            await modelViewer.activateAR();
-        } catch (e) {
-            console.error("Ошибка AR:", e);
-            alert("Не удалось запустить камеру: " + e.message);
-            arPopup.style.background = 'rgba(0,0,0,0.9)';
-            if (exitArBtn) exitArBtn.style.display = 'none';
-        }
+        // Скрываем наше окно, так как открылось системное
+        arPopup.style.display = 'none';
     };
 
     // ✅ Логика кнопки выхода из AR
