@@ -5,6 +5,7 @@ html, body {
     width: 100%;
     height: 100%;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow: hidden; /* Предотвращает скролл страницы при использовании AR */
 }
 
 #map {
@@ -13,127 +14,162 @@ html, body {
     background-color: #f0f0f0;
 }
 
-/* Enhanced UI for mobile devices */
-#meme-popup {
-    position: absolute; 
-    top: 50%; 
-    left: 50%; 
-    transform: translate(-50%, -50%);
-    width: 290px; 
-    height: 360px; 
-    background: rgba(19, 19, 22, 0.96);
-    border: 3px solid #ff3d00; 
-    border-radius: 8px; 
-    z-index: 2000;
-    display: none; 
-    text-align: center; 
-    color: white; 
-    font-family: 'Arial', sans-serif;
-    box-shadow: 0 0 30px rgba(255, 61, 0, 0.6);
-    padding: 15px;
-    box-sizing: border-box;
-}
-
-#meme-popup h3 {
-    margin: 12px 0; 
-    letter-spacing: 1px;
-    font-size: 18px;
-}
-
-#meme-popup model-viewer {
-    width: 100%; 
-    height: 220px; 
-    background: #2a2a30;
-    border-radius: 4px;
-    margin-bottom: 15px;
-}
-
-#capture-btn {
-    background: #ff3d00; 
-    color: white; 
-    border: none; 
-    padding: 12px 24px;
-    font-weight: bold; 
-    border-radius: 4px; 
-    cursor: pointer; 
-    margin-top: 14px;
-    font-size: 14px; 
-    letter-spacing: 0.5px; 
-    box-shadow: 0 4px 10px rgba(255,61,0,0.4);
-    width: 100%;
-    transition: all 0.2s ease;
-}
-
-#capture-btn:hover {
-    background: #ff5500;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(255,61,0,0.5);
-}
-
-#capture-btn:active {
-    transform: translateY(0);
-}
-
-/* Styles for notifications */
-.notification {
+/* =========================================
+   AR POPUP STYLES (Новое окно захвата)
+   ========================================= */
+#ar-popup {
     position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 3000;
+    display: none; /* Управляется через JS */
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+#ar-popup h2 {
+    color: white;
+    margin-bottom: 10px;
+    font-family: sans-serif;
+    text-align: center;
+    padding: 0 20px;
+}
+
+#ar-model-viewer {
+    width: 100%;
+    height: 70%;
+    background: transparent;
+}
+
+/* Кнопка запуска AR внутри model-viewer */
+#ar-model-viewer button[slot="ar-button"] {
+    background-color: #ff3d00;
+    border-radius: 4px;
+    border: none;
+    color: white;
+    padding: 16px 32px;
+    position: absolute;
+    bottom: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-weight: bold;
+    font-size: 18px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(255, 61, 0, 0.5);
+}
+
+/* Кнопка "Забрать" */
+#ar-capture-btn {
+    background: linear-gradient(45deg, #00c853, #64dd17);
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    font-size: 18px;
+    font-weight: bold;
+    border-radius: 50px;
+    cursor: pointer;
+    margin-top: 20px;
+    display: none; /* Скрыта по умолчанию, показывается через JS */
+    box-shadow: 0 4px 15px rgba(0, 200, 83, 0.5);
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+#ar-capture-btn:active {
+    transform: scale(0.95);
+}
+
+/* Кнопка "Закрыть/Отмена" */
+#ar-close-btn {
+    position: absolute;
     top: 20px;
     right: 20px;
-    padding: 15px 20px;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    padding: 10px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    backdrop-filter: blur(4px);
+}
+
+/* =========================================
+   NOTIFICATIONS (Уведомления)
+   ========================================= */
+#notification-container {
+    position: fixed;
+    top: 70px; /* Сдвинуто ниже, чтобы не перекрывать progress-indicator */
+    right: 20px;
+    z-index: 4000; /* Выше AR-попапа на случай ошибок во время AR */
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none; /* Контейнер прозрачен для кликов */
+}
+
+.notification {
+    padding: 12px 20px;
     border-radius: 8px;
     color: white;
     font-weight: bold;
-    z-index: 3000;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    font-size: 14px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     transform: translateX(120%);
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    pointer-events: auto;
+    max-width: 300px;
 }
 
 .notification.show {
     transform: translateX(0);
 }
 
-.notification.success {
-    background: #4caf50;
-}
+.notification.success { background: #4caf50; }
+.notification.error   { background: #f44336; }
+.notification.info    { background: #2196f3; }
 
-.notification.error {
-    background: #f44336;
-}
-
-.notification.info {
-    background: #2196f3;
-}
-
-/* Styles for progress indicator */
+/* =========================================
+   PROGRESS INDICATOR (Счётчик)
+   ========================================= */
 #progress-indicator {
     position: fixed;
     top: 20px;
-    left: 20px;
+    right: 20px;
     background: rgba(0, 0, 0, 0.7);
     color: white;
-    padding: 10px 15px;
-    border-radius: 8px;
+    padding: 8px 16px;
+    border-radius: 20px;
     font-size: 14px;
+    font-weight: bold;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
     z-index: 1000;
+    pointer-events: none; /* Прозрачен для кликов по карте */
+    backdrop-filter: blur(4px);
 }
 
-/* Responsive styles */
+#collected-count {
+    color: #ff3d00;
+}
+
+/* =========================================
+   RESPONSIVE STYLES
+   ========================================= */
 @media (max-width: 768px) {
-    #meme-popup {
-        width: 90vw;
-        height: 400px;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
+    #ar-popup h2 {
+        font-size: 18px;
     }
-    
-    #meme-popup h3 {
+
+    #ar-capture-btn {
+        padding: 12px 24px;
         font-size: 16px;
     }
-    
-    #capture-btn {
-        padding: 10px 15px;
-        font-size: 16px;
+
+    .notification {
+        max-width: 85vw;
+        font-size: 13px;
     }
 }
