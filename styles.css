@@ -50,25 +50,21 @@ html, body {
 
 /* Кнопка запуска AR внутри model-viewer */
 #ar-model-viewer button[slot="ar-button"] {
-    background-color: #ff3d00 !important;
-    color: white !important;
-    border: none !important;
-    border-radius: 8px !important;
-    padding: 16px 32px !important;
-    font-weight: bold !important;
-    font-size: 18px !important;
-    cursor: pointer !important;
-    /* Магия позиционирования для iOS/Android */
-    position: absolute !important;
-    bottom: 15% !important; /* Чуть выше, чем было */
-    left: 50% !important;
-    transform: translateX(-50%);
-    z-index: 9999; /* Гарантированно поверх всего */
-    box-shadow: 0 4px 15px rgba(255, 61, 0, 0.6);
-    transition: transform 0.2s;
     display: block !important;
     visibility: visible !important;
     opacity: 1 !important;
+    position: absolute !important;
+    bottom: 20px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    z-index: 9999 !important;
+    background-color: #ff3d00 !important;
+    color: white !important;
+    border: none !important;
+    padding: 15px 30px !important;
+    border-radius: 30px !important;
+    font-weight: bold !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5) !important;
 }
 
 #ar-model-viewer button[slot="ar-button"]:active {
