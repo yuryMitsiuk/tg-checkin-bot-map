@@ -1,4 +1,3 @@
-// УСТАНОВИТЬ В САМЫЙ ВЕРХ SCRIPT.JS
 window.onerror = function(message, source, lineno, colno, error) {
     const errorDiv = document.createElement('div');
     errorDiv.style.position = 'fixed';
@@ -15,9 +14,6 @@ window.onerror = function(message, source, lineno, colno, error) {
     document.body.appendChild(errorDiv);
     return false;
 };
-
-// Main JavaScript Logic
-console.log("Логика JavaScript запущена!");
 
 // Main JavaScript Logic
 console.log("Логика JavaScript запущена!");
@@ -103,6 +99,18 @@ const tg = window.Telegram?.WebApp || {
  * @type {boolean}
  */
 const isDevelopment = CONFIG.DEVELOPMENT.enabled;
+
+/**
+ * The list of available 3D models
+ * @type {string[]}
+ */
+const MEME_MODEL_PATHS = [
+    "./models/67_brainrot.glb",
+    "./models/ballerina_cappuccina_brainrot.glb",
+    "./models/tralalero_tralala.glb",
+    "./models/Astronaut.glb"
+];
+
 
 /**
  * Current user ID
@@ -278,6 +286,71 @@ function showNotification(message, type = "info") {
 }
 
 /**
+ * Displays a full-screen AR window to capture a 3D meme.
+ *
+ * The function performs the following actions:
+ * 1. Dynamically loads a unique 3D model (.glb) for a specific quest point.
+ * 2. Monitors the status of the AR session through the 'ar-status' event.
+ * 3. Shows the "Pick up" button only after the object has been successfully placed in the space (object-placed).
+ * 4. Handles meme collection and sending progress to the server.
+ *
+ * @param {Object} point - The object of the game point.
+ * @param {number} point.id - Unique identifier of the point.
+ * @param {string} point.modelSrc is the path to the 3D model file (for example, './models/Astronaut.glb').
+ * @param {Object|null} point.markerInstance is an instance of the Leaflet marker for status updates.
+ * @returns {void}
+ */
+function showARPopup(point) {
+    const arPopup = document.getElementById('ar-popup');
+    const modelViewer = document.getElementById('ar-model-viewer');
+    const captureBtn = document.getElementById('ar-capture-btn');
+    const closeBtn = document.getElementById('ar-close-btn');
+
+    // 1. Подставляем нужную модель
+    modelViewer.src = point.modelSrc;
+
+    // 2. Скрываем кнопку захвата изначально
+    captureBtn.style.display = 'none';
+    captureBtn.textContent = "🎯 Я ВИЖУ ЕГО! ЗАБРАТЬ!";
+    captureBtn.disabled = false;
+
+    // 3. Показываем окно
+    arPopup.style.display = 'flex';
+
+    // 4. Слушаем событие "Мем встал на поверхность"
+    // Это сработает, когда игрок наведет камеру на пол и мем "прилипнет"
+    const onArStatus = (event) => {
+        if (event.detail.status === 'object-placed') {
+            console.log("✅ AR-объект успешно размещен в пространстве!");
+            captureBtn.style.display = 'inline-block'; // Показываем кнопку только теперь
+
+            // Удаляем слушатель, чтобы не срабатывал лишний раз
+            modelViewer.removeEventListener('ar-status', onArStatus);
+        }
+    };
+
+    modelViewer.addEventListener('ar-status', onArStatus);
+
+    // 5. Логика кнопки "Забрать"
+    captureBtn.onclick = function() {
+        arPopup.style.display = 'none';
+
+        if (point.markerInstance) {
+            point.markerInstance.setPopupContent(`<b>✅ Мем собран в инвентарь!</b>`).openPopup();
+        }
+
+        sendProgressToServer();
+    };
+
+    // 6. Логика кнопки "Отмена"
+    closeBtn.onclick = function() {
+        arPopup.style.display = 'none';
+        visitedPoints.delete(point.id); // Разрешаем попробовать снова
+        updateProgressIndicator();
+    };
+}
+
+/**
  * Checks fog of war and updates game state based on user position
  * @returns {void}
  */
@@ -297,28 +370,10 @@ function checkFogOfWar() {
 
         // 2. ВХОД В ЗОНУ ВЗЯТИЯ ТОЧКИ (15 метров)
         if (distance <= 15 && !visitedPoints.has(point.id)) {
-            // Чтобы окно не открывалось повторно, пока игрок его не закроет
             visitedPoints.add(point.id);
-            updateProgressIndicator();
+            console.log(`🎯 Вход в зону AR! Модель: ${point.modelSrc}`);
 
-            console.log(`🎯 Игрок подошел вплотную к мему #${point.id + 1}! Дистанция: ${Math.round(distance)}м.`);
-
-            // Показываем наше скрытое 3D окно
-            const popup = document.getElementById('meme-popup');
-            popup.style.display = 'block';
-
-            // Вешаем обработчик события на клик по кнопке «Тапнуть и собрать»
-            // Находим этот кусок внутри if (distance <= 15 ...)
-            const captureBtn = document.getElementById('capture-btn');
-            captureBtn.onclick = function() {
-                popup.style.display = 'none'; // Прячем 3D окно
-
-                if (point.markerInstance) {
-                    point.markerInstance.setPopupContent(`<b>✅ Мем успешно собран!</b>`).openPopup();
-                }
-
-                sendProgressToServer();
-            };
+            showARPopup(point);
         }
     });
 }
@@ -350,12 +405,16 @@ async function loadGamePoints(gameId) {
         }
 
         // Сохраняем точки в наш массив, но на карту изначально НЕ ДОБАВЛЯЕМ!
-        targetPoints = points.map((p, idx) => ({
-            lat: p.lat,
-            lon: p.lon,
-            id: idx,
-            markerInstance: null
-        }));
+        targetPoints = points.map((p, idx) => {
+            const modelFile = MEME_MODELS[idx % MEME_MODELS.length];
+            return {
+                lat: p.lat,
+                lon: p.lon,
+                id: idx,
+                modelSrc: modelFile,
+                markerInstance: null
+            };
+        });
 
         totalPoints = targetPoints.length;
         document.getElementById('total-count').textContent = totalPoints;
@@ -537,12 +596,6 @@ function initGame(gameId) {
     // Get user data
     currentUserData = getUserData();
     currentUserId = currentUserData?.id || 99999;
-    
-    // Set user name in popup
-    const userPopup = document.querySelector('#meme-popup b');
-    if (userPopup) {
-        userPopup.textContent = `Вы здесь (${currentUserData?.first_name || 'Пользователь'})`;
-    }
     
     // Get user location (real or fake)
     if (isDevelopment) {
