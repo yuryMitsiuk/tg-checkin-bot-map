@@ -406,7 +406,7 @@ async function loadGamePoints(gameId) {
 
         // Сохраняем точки в наш массив, но на карту изначально НЕ ДОБАВЛЯЕМ!
         targetPoints = points.map((p, idx) => {
-            const modelFile = MEME_MODELS[idx % MEME_MODELS.length];
+            const modelFile = MEME_MODEL_PATHS[idx % MEME_MODEL_PATHS.length];
             return {
                 lat: p.lat,
                 lon: p.lon,
@@ -612,6 +612,68 @@ function initGame(gameId) {
 }
 
 /**
+ * Loads and displays the Game Hub selection menu
+ * @async
+ * @returns {Promise<void>}
+ */
+async function loadGameHub() {
+    const hubOverlay = document.getElementById('game-hub-overlay');
+    const gamesListContainer = document.getElementById('hub-games-list');
+
+    // Показываем полноэкранное меню выбора
+    hubOverlay.style.display = 'flex';
+    gamesListContainer.innerHTML = ''; // Очищаем текст загрузки
+
+    try {
+        // Скачиваем список активных игр с нашего нового роута FastAPI
+        const response = await fetch(`${API_BASE_URL}/api/games`);
+        
+        // Check if response is OK
+        if (!response.ok) {
+            console.error(`Ошибка HTTP: ${response.status}`);
+            gamesListContainer.innerHTML = '<p class="hub-error-message">Ошибка связи с сервером бэкенда.</p>';
+            return;
+        }
+        
+        const games = await response.json();
+
+        // Validate that games is an array
+        if (!Array.isArray(games)) {
+            console.error("Полученные данные не являются массивом:", games);
+            gamesListContainer.innerHTML = '<p class="hub-error-message">Некорректный формат данных от сервера.</p>';
+            return;
+        }
+
+        if (games.length === 0) {
+            gamesListContainer.innerHTML = '<p class="hub-empty-message">ℹ️ Сейчас нет активных игр.<br>Создайте квест в боте через /create_game!</p>';
+            return;
+        }
+
+        // Циклом создаем красивую Roblox-кнопку для каждой игры
+        games.forEach((game) => {
+            const btn = document.createElement('button');
+            btn.className = 'hub-game-btn';
+            btn.innerHTML = `<span>🎮 ${game.name}</span> <span class="hub-game-arrow">▶</span>`;
+
+            // Логика нажатия на игру из списка:
+            btn.onclick = function() {
+                hubOverlay.style.display = 'none'; // Прячем стартовое меню
+                currentGameId = game.id;                 // Записываем выбор в глобальную переменную
+
+                console.log(`🚀 Игрок выбрал квест вручную через Хаб! ID = ${currentGameId}`);
+                initGame(currentGameId);           // Запускаем полную инициализацию выбранного мира!
+            };
+
+            gamesListContainer.appendChild(btn);
+        });
+
+    } catch (error) {
+        console.error("Ошибка загрузки Игрового Хаба:", error);
+        gamesListContainer.innerHTML = '<p class="hub-error-message">Ошибка связи с сервером бэкенда.</p>';
+    }
+}
+
+/**
  * Sets up click event listener for development mode
  * @returns {void}
  */
@@ -641,10 +703,10 @@ globalThis.addEventListener('load', function() {
             // Initialize with fake location and user data
             initGame(currentGameId);
         } else {
-            // For production, we still need to load points, but we can use a fallback
-            // or show an error message
-            console.error("No game_id provided in production mode");
-            showNotification("Ошибка: Не удалось определить ID игры", "error");
+            // Initialize via menu-hub in app by user choose
+            console.warn("No game_id provided in production mode");
+            console.log("Ссылка без ID игры. Активируем Игровой Хаб выбора квестов.");
+            loadGameHub();
         }
     }
 });
