@@ -312,48 +312,63 @@ function showARPopup(point) {
     const captureBtn = document.getElementById('ar-capture-btn');
     const closeBtn = document.getElementById('ar-close-btn');
 
-    console.log("Подготовка AR для:", point.modelSrcIos);
+    // Находим нашу скрытую ссылку
+    const iosLink = document.getElementById('ios-ar-trigger');
 
-    // 1. Задаем модели для превью (чтобы модель крутилась на фоне)
+    console.log("📦 Подготовка AR для:", point.modelSrcIos);
+
+    // 1. Задаем пути для превью (чтобы модель крутилась до нажатия кнопки)
     modelViewer.src = point.modelSrc;
     modelViewer.iosSrc = point.modelSrcIos;
 
-    // 2. Сброс кнопок
+    // 2. Настраиваем скрытую ссылку на нужный файл .usdz
+    if (iosLink) {
+        iosLink.href = point.modelSrcIos;
+    }
+
+    // 3. Сброс кнопок
     myBtn.style.display = 'block';
     captureBtn.style.display = 'none';
 
-    // 3. Показываем окно
+    // 4. Показываем окно
     arPopup.style.display = 'flex';
 
-    // 4. ЛОГИКА КНОПКИ: ОТКРЫВАЕМ НАТИВНЫЙ QUICK LOOK
+    // 5. ЛОГИКА КНОПКИ: Имитируем клик по ссылке
     myBtn.onclick = () => {
-        console.log("🚀 Запуск нативного Quick Look...");
+        console.log("🔥 Нажата кнопка AR! Пытаемся открыть нативную камеру...");
 
-        // Создаем временную невидимую ссылку
-        const link = document.createElement('a');
-        link.href = point.modelSrcIos; // Путь к .usdz файлу
-        link.rel = "ar";               // Говорим iOS: "Это AR!"
+        if (iosLink) {
+            // Это заставит iOS открыть Quick Look в режиме AR
+            iosLink.click();
 
-        // Добавляем, кликаем и удаляем
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+            // Сразу скрываем наше окно, так как камера перекроет экран
+            arPopup.style.display = 'none';
 
-        // Прячем наше окно, так как открылась системная камера
-        arPopup.style.display = 'none';
-
-        // Так как мы вышли из приложения в камеру, считаем мем собранным сразу,
-        // когда пользователь вернется (или можно добавить кнопку подтверждения)
-        setTimeout(() => {
-            if (point.markerInstance) {
-                point.markerInstance.setPopupContent(`<b>✅ Мем собран!</b>`).openPopup();
-            }
-            sendProgressToServer();
-        }, 2000);
+            // Показываем кнопку "Забрать", когда игрок вернется из камеры
+            setTimeout(() => {
+                arPopup.style.display = 'flex';
+                myBtn.style.display = 'none';
+                captureBtn.style.display = 'block';
+                captureBtn.textContent = "✅ Я ВИДЕЛ МЕМА! ЗАБРАТЬ";
+            }, 1000); // Даем секунду на то, чтобы камера успела открыться
+        } else {
+            alert("Ошибка: не найдена ссылка для запуска AR");
+        }
     };
 
-    // 5. Кнопка отмены (крестик)
-    closeBtn.onclick = () => {
+    // 6. Логика кнопки "Забрать"
+    captureBtn.onclick = function() {
+        arPopup.style.display = 'none';
+
+        if (point.markerInstance) {
+            point.markerInstance.setPopupContent(`<b>✅ Мем собран!</b>`).openPopup();
+        }
+
+        sendProgressToServer();
+    };
+
+    // 7. Логика кнопки "Отмена"
+    closeBtn.onclick = function() {
         arPopup.style.display = 'none';
         visitedPoints.delete(point.id);
         updateProgressIndicator();
