@@ -11,6 +11,7 @@ A location-based game application for Telegram Mini Apps that allows users to co
 - **Continuous Location Tracking**: Real-time position updates as the player moves
 - **Dynamic Game Loading**: Game ID is read from URL parameters or selected via Game Hub
 - **Game Hub**: Selection menu for available active games when no game ID is provided
+- **User Onboarding**: Interactive tutorial explaining how to walk, find, and collect memes
 - **Progress Tracking**: Sends player progress to backend server
 - **Responsive Design**: Works on both desktop and mobile devices
 
@@ -26,11 +27,10 @@ A location-based game application for Telegram Mini Apps that allows users to co
 ### File Structure
 ```
 checkin-bot-map/
-├── index.html          # Main application page (includes Game Hub and AR popup)
+├── index.html          # Main application page (includes Game Hub, AR popup, and onboarding)
 ├── styles.css          # CSS styles for UI
 ├── script.js           # JavaScript game logic
 ├── models/             # 3D model files
-│   ├── Astronaut.glb   # 3D astronaut model
 │   └── *.glb           # Additional 3D meme models
 └── README.md           # This file
 ```
@@ -63,10 +63,21 @@ The application supports two modes controlled by the `CONFIG` object in `script.
 1. **Game Launch**: 
    - **Direct Link**: Telegram bot passes `game_id` parameter in URL (e.g., `?game_id=5`)
    - **Game Hub**: If no `game_id` is provided, the app shows a Game Hub where the user can select from available active games
-2. **Map Navigation**: Players move by clicking on the map (development) or using GPS (production)
-3. **Fog of War**: Points are hidden until player approaches within 150 meters
-4. **Collection**: When player gets within 15 meters of a point, they can collect it
-5. **Progress Tracking**: Game state is sent to backend server
+2. **Onboarding**: First-time users see an interactive tutorial explaining the game mechanics
+3. **Map Navigation**: Players move by clicking on the map (development) or using GPS (production)
+4. **Fog of War**: Points are hidden until player approaches within 150 meters
+5. **Collection**: When player gets within 15 meters of a point, they can collect it
+6. **Progress Tracking**: Game state is sent to backend server
+
+### Onboarding Flow
+The onboarding tutorial appears automatically for new users and explains:
+1. **Welcome**: Introduction to MEME QUESTS
+2. **Movement**: How to move in the real world and what the blue dot represents
+3. **Discovery**: How Fog of War works and how to find hidden memes
+4. **AR Collection**: How to collect memes using AR when close enough
+5. **Competition**: How to compete with friends and win
+
+Users can skip the tutorial or reopen it anytime using the ❓ help button.
 
 ### Location Handling
 The application uses a priority-based location system:
@@ -119,6 +130,8 @@ All JavaScript functions are documented with JSDoc comments:
 
 ### CSS Structure
 - Modular styling with reusable components
+- Onboarding overlay and card styles
+- Help button styling
 - Responsive design for mobile devices
 - Modern UI with animations and transitions
 

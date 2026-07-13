@@ -609,6 +609,14 @@ function initGame(gameId) {
     
     // Load game points
     loadGamePoints(currentGameId);
+    
+    // Show onboarding for new users after game is initialized
+    if (shouldShowOnboarding()) {
+        // Small delay to let the map render first
+        setTimeout(() => {
+            showOnboarding();
+        }, 500);
+    }
 }
 
 /**
@@ -674,6 +682,139 @@ async function loadGameHub() {
 }
 
 /**
+ * Current onboarding step index
+ * @type {number}
+ */
+let currentOnboardingStep = 0;
+
+/**
+ * Total number of onboarding steps
+ * @type {number}
+ */
+const TOTAL_ONBOARDING_STEPS = 5;
+
+/**
+ * Shows the onboarding overlay
+ * @returns {void}
+ */
+function showOnboarding() {
+    const overlay = document.getElementById('onboarding-overlay');
+    overlay.style.display = 'flex';
+    currentOnboardingStep = 0;
+    updateOnboardingStep();
+}
+
+/**
+ * Hides the onboarding overlay
+ * @returns {void}
+ */
+function hideOnboarding() {
+    const overlay = document.getElementById('onboarding-overlay');
+    overlay.style.display = 'none';
+}
+
+/**
+ * Updates the onboarding UI to show the current step
+ * @returns {void}
+ */
+function updateOnboardingStep() {
+    // Update steps visibility
+    const steps = document.querySelectorAll('.onboarding-step');
+    steps.forEach((step) => {
+        step.classList.remove('active');
+        if (Number.parseInt(step.dataset.step) === currentOnboardingStep) {
+            step.classList.add('active');
+        }
+    });
+
+    // Update progress dots
+    const dots = document.querySelectorAll('.onboarding-dot');
+    dots.forEach((dot) => {
+        dot.classList.remove('active');
+        if (Number.parseInt(dot.dataset.step) === currentOnboardingStep) {
+            dot.classList.add('active');
+        }
+    });
+
+    // Update next button text on last step
+    const nextBtn = document.getElementById('onboarding-next-btn');
+    if (currentOnboardingStep === TOTAL_ONBOARDING_STEPS - 1) {
+        nextBtn.textContent = 'Начать игру!';
+    } else {
+        nextBtn.textContent = 'Далее';
+    }
+}
+
+/**
+ * Moves to the next onboarding step or closes it
+ * @returns {void}
+ */
+function nextOnboardingStep() {
+    if (currentOnboardingStep < TOTAL_ONBOARDING_STEPS - 1) {
+        currentOnboardingStep++;
+        updateOnboardingStep();
+    } else {
+        completeOnboarding();
+    }
+}
+
+/**
+ * Marks onboarding as completed and hides it
+ * @returns {void}
+ */
+function completeOnboarding() {
+    hideOnboarding();
+    try {
+        localStorage.setItem('memeQuestsOnboardingCompleted', 'true');
+    } catch (error) {
+        console.warn("Не удалось сохранить статус onboarding в localStorage:", error);
+    }
+}
+
+/**
+ * Checks if onboarding should be shown to the user
+ * @returns {boolean} True if onboarding should be shown
+ */
+function shouldShowOnboarding() {
+    // Always show in development mode for testing
+    if (isDevelopment) {
+        return true;
+    }
+    
+    try {
+        return localStorage.getItem('memeQuestsOnboardingCompleted') !== 'true';
+    } catch (error) {
+        console.warn("Не удалось прочитать статус onboarding из localStorage:", error);
+        return true;
+    }
+}
+
+/**
+ * Sets up onboarding event listeners
+ * @returns {void}
+ */
+function setupOnboarding() {
+    const nextBtn = document.getElementById('onboarding-next-btn');
+    const skipBtn = document.getElementById('onboarding-skip-btn');
+    const helpBtn = document.getElementById('help-btn');
+
+    if (nextBtn) {
+        nextBtn.addEventListener('click', nextOnboardingStep);
+    }
+
+    if (skipBtn) {
+        skipBtn.addEventListener('click', completeOnboarding);
+    }
+
+    if (helpBtn) {
+        helpBtn.addEventListener('click', () => {
+            currentOnboardingStep = 0;
+            showOnboarding();
+        });
+    }
+}
+
+/**
  * Sets up click event listener for development mode
  * @returns {void}
  */
@@ -685,6 +826,9 @@ if (isDevelopment) {
 
 // Initialize the game when page loads
 globalThis.addEventListener('load', function() {
+    // Setup onboarding controls
+    setupOnboarding();
+
     // Extract game_id from URL parameters
     const urlParams = new URLSearchParams(globalThis.location.search);
     const gameIdFromUrl = urlParams.get('game_id');

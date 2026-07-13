@@ -29,6 +29,55 @@
 <!-- Уведомления -->
 <div id="notification-container"></div>
 
+<!-- Onboarding Overlay -->
+<div id="onboarding-overlay">
+    <div class="onboarding-card">
+        <div class="onboarding-content">
+            <div class="onboarding-step active" data-step="0">
+                <div class="onboarding-icon">🎮</div>
+                <h2>Добро пожаловать в MEME QUESTS!</h2>
+                <p>Исследуй территорию, находи скрытые мемы и собирай их через AR. Соревнуйся с друзьями и будь первым!</p>
+            </div>
+            <div class="onboarding-step" data-step="1">
+                <div class="onboarding-icon">🚶</div>
+                <h2>Ходи по реальному миру</h2>
+                <p>Твоя позиция на карте обновляется автоматически. Синяя точка — это ты! Двигайся, чтобы исследовать территорию.</p>
+            </div>
+            <div class="onboarding-step" data-step="2">
+                <div class="onboarding-icon">🔍</div>
+                <h2>Ищи скрытые мемы</h2>
+                <p>Мемы скрыты туманом войны. Подойди ближе 150 метров, чтобы обнаружить их на карте.</p>
+            </div>
+            <div class="onboarding-step" data-step="3">
+                <div class="onboarding-icon">📸</div>
+                <h2>Собирай через AR</h2>
+                <p>Когда подойдешь ближе 15 метров, откроется AR-окно. Найди мем в пространстве и нажми "Забрать!"</p>
+            </div>
+            <div class="onboarding-step" data-step="4">
+                <div class="onboarding-icon">🏆</div>
+                <h2>Соревнуйся и побеждай</h2>
+                <p>Собирай мемы первым, чтобы победить в соревновании! Твой прогресс отображается в правом верхнем углу.</p>
+            </div>
+        </div>
+        
+        <div class="onboarding-progress">
+            <div class="onboarding-dot active" data-step="0"></div>
+            <div class="onboarding-dot" data-step="1"></div>
+            <div class="onboarding-dot" data-step="2"></div>
+            <div class="onboarding-dot" data-step="3"></div>
+            <div class="onboarding-dot" data-step="4"></div>
+        </div>
+        
+        <div class="onboarding-actions">
+            <button id="onboarding-skip-btn" class="onboarding-btn secondary">Пропустить</button>
+            <button id="onboarding-next-btn" class="onboarding-btn primary">Далее</button>
+        </div>
+    </div>
+</div>
+
+<!-- Help Button -->
+<button id="help-btn" title="Как играть?">❓</button>
+
 <div id="map"></div>
 
 <!-- Подключаем внешний JavaScript -->
