@@ -311,10 +311,12 @@ function showARPopup(point) {
     const captureBtn = document.getElementById('ar-capture-btn');
     const closeBtn = document.getElementById('ar-close-btn');
 
+    console.log("GLB:", point.modelSrc);
+    console.log("USDZ:", point.modelSrcIos);
+
     // 1. Подставляем нужную модель
     modelViewer.src = point.modelSrc;
-    // modelViewer.iosSrc = point.modelSrcIos;
-    modelViewer.setAttribute('ios-src', point.modelSrcIos);
+    modelViewer.iosSrc = point.modelSrcIos;
 
     // 2. Скрываем кнопку захвата изначально
     captureBtn.style.display = 'none';

@@ -66,6 +66,9 @@ html, body {
     z-index: 9999; /* Гарантированно поверх всего */
     box-shadow: 0 4px 15px rgba(255, 61, 0, 0.6);
     transition: transform 0.2s;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 #ar-model-viewer button[slot="ar-button"]:active {
